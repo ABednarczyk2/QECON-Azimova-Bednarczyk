@@ -15,8 +15,9 @@ z       = copy(y)
 z[2]    = 3
 z
 y
+o=[1,3,5,6]
 #what
-
+o
 z = similar(y)
 # 3. Types: The value 64 in Int64 implies that it take up 64 bits of memory
 typeof(1)
