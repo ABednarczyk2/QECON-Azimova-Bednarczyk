@@ -232,6 +232,8 @@ for i in eachindex(y, x)
     z[i] = y[i] * x[i] 
 end
 z
+#what
+
 # we can get the same result with a comprehension 
 [y[i] * x[i] for i in eachindex(y, x)]
 [0 for i in eachindex(y, x)]
