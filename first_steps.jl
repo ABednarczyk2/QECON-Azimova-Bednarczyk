@@ -354,8 +354,12 @@ my_tuple_2[2]
 my_tuple_2[3]
 my_named_tuple = (α = 0.33, β = 0.9, r = 0.05)
 my_named_tuple.α
+println ("henlo")
+git Base.StatusActive
 
+git status 
 
+git status
 
 function odd_or_even(n)
     return n % 2==0 ? "even" : "odd"
