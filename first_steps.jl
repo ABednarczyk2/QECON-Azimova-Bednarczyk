@@ -354,3 +354,15 @@ my_tuple_2[2]
 my_tuple_2[3]
 my_named_tuple = (α = 0.33, β = 0.9, r = 0.05)
 my_named_tuple.α
+
+
+
+function odd_or_even(n)
+    return n % 2==0 ? "even" : "odd"
+end
+odd_or_even(137336146183)
+odd_or_even(78346238643287687668274)
+my_friends=["sadness","alcoholism","depression","misery"]
+for friend in my_friends
+    
+end
