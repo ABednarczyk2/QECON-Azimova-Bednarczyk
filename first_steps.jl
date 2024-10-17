@@ -368,5 +368,19 @@ odd_or_even(137336146183)
 odd_or_even(78346238643287687668274)
 my_friends=["sadness","alcoholism","depression","misery"]
 for friend in my_friends
-    
+   println("hi $friend, it's great to see you :3") 
+end
+my_friends=["sadness","pain","alcoholism","misery"]
+my_friends
+
+i=1;
+while  i <=3
+println(i)
+global i +=1
+end
+for i=1:16:2024
+    println(i)
+end
+for i in [1,5,0]
+    println(i)
 end
