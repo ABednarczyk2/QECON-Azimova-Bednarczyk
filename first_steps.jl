@@ -79,12 +79,16 @@ else
 end
 
 # 5. Boolean operators: 
+x=3
+
 typeof(!(x==4))
 typeof(true)
 !(x==4)
 x > 0 && x < 10
 0<x<10
 x < 0 || x > 10
+
+
 
 #############################        CONCEPT CHECK:         ############################# 
 # a. Make two variables, var_a and var_b. Put any numeric types in these variables.
