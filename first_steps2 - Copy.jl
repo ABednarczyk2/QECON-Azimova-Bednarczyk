@@ -57,6 +57,6 @@ using Statistics
 
 
 
-matrix_data = readdlm("C:\\Users\\2022\\Desktop\\Stuff\\data.csv", ',')
+matrix_data = readdlm("C:\\Users\\2022\\Desktop\\Stuff\\dataset.csv", ',')
 
 
