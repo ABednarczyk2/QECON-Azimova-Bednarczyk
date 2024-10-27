@@ -55,8 +55,42 @@ using DelimitedFiles
 using Plots
 using Statistics
 
+using Plots
 
+function plot_powers(n)
+    x = -10:0.2:10  
+    plot(title="Powers of x", xlabel="x", ylabel="y")
 
-matrix_data = readdlm("C:\\Users\\2022\\Desktop\\Stuff\\dataset.csv", ',')
+    for i in 1:n
+        y = x .^ i   
+        plot!(x, y, label="x^$i")  
+    end
+
+    display(plot())  
+end
+
+plot_powers(50)  
+
+function plot_powers(n)
+    x = -10:0.2:10  
+    plot2 = plot(title="Powers of x", xlabel="x", ylabel="y") 
+
+    for i in 1:n
+    
+        power_function = x -> x^i
+
+        
+        y = power_function.(x)
+
+        
+        plot!(x, y, label="x^$i", linewidth=3, linestyle=:dash)
+    end
+
+    return plot2  
+end
+
+my_plot = plot_powers(3) 
+
+Cmatrix_data = readdlm("C:\\Users\\2022\\Desktop\\Stuff\\dataset.csv", ',')
 
 
