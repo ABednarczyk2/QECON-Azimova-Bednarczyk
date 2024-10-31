@@ -147,6 +147,7 @@ hours_worked = Cmatrix_data[:, 3]
 
 scatter(education, earnings, xlabel="Education", ylabel="Earnings",
         title="Earnings vs Education", markercolor=:green, legend=false)
+    |
 
 scatter(hours_worked, earnings, xlabel="Hours Worked", ylabel="Earnings",
         title="Earnings vs Hours Worked",markercolor=:red, legend=false)
@@ -339,3 +340,79 @@ display(plot_2)
 cor(data_1[:,2],data_1[:,1])
 cor(data_1[:,2],data_1[:,3])
 #oh
+
+
+#3rd Version
+#= Problem 1: Odd_or_Even 
+Write a function odd_or_even(n) that takes an integer n and prints: • "Odd" if the number is odd.
+"Even" if the number is even.1
+=# 
+# Problem 1: Odd_or_Even 
+#= Using Type Annotation 
+(I believe it to be more accurate cause it will identify only integers): =#
+
+@@ -34,20 +28,8 @@ end
+odd_or_even(3)
+odd_or_even(67)
+
+# Problem 2: Boolean operators 
+
+#= function compare_three(a, b, c)
+    if a > 0 && b > 0 && c > 0
+        println("All numbers are positive")
+    elseif 
+        println("At least one number is not positive")
+    elseif 
+    I can't use that ==> ORDER MATTERS
+    
+        =# 
+function compare_three(a, b, c)
+    if a == 0 && b == 0 && c == 0
+        println("All numbers are zero")
+@@ -113,44 +95,31 @@ end
+my_plot = plot_powers(5)
+
+using Plots
+function plot_powers(n)
+    
+    x_values = -10:0.2:10
+    
+    
+    plot(
+        xlim=(-10, 10), xlabel="x", ylabel="y", title="Powers of x",
+        linewidth=3, line=:dash, legend=:topright
+    )
+    
+    for i in 1:n
+        
+        y_values = x_values .^ i  
+        
+        
+         y_values = x_values .^ i  
+        plot!(x_values, y_values, label="x^$i")
+    end
+end
+plot_powers(5)
+
+# Problem 5: Count Positive Numbers Using Broadcasting
+
+function count_positives_broadcasting(arr)
+    positives = arr .> 0 
+    count = sum(positives)
+    println("Output: $count")
+end 
+count_positives_broadcasting([1, 3, -9 -100, 50, -2000])
+
+# Problem 6: Standard Deviation Using Broadcasting and Vectorized Operations
+
+    function standard_deviation(x)
+        
+        mean_x = sum(x) / length(x)
+        d = x .- mean_x
+        squared_d = d .^ 2
+
+        plot_1 = scatter(data_1[:,2], data_1[:,1]; legend=false, color=:green, markersize = 5, opacity=0.7)
+xaxis!(plot_1, "Education")
+yaxis!(plot_1, "Earnings")
+title!(plot_1, "Scatter plot of Earnings & Education")
+display(plot_1)
