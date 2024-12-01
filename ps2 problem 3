@@ -1,0 +1,37 @@
+using NLsolve 
+
+function NPV(r, C)
+    n = length(C)
+    npv = sum(C[t] / (1 + r)^(t - 1) for t in 1:n)
+    return npv
+end
+
+# 2. Function to find the internal rate of return (IRR) using NLsolve function internal_rate(C)
+    # We have to define the equation where we want NPV(r, C) = 0
+    function nlsolve_func(r_vec)
+        r = r_vec[1]  # The thing to do is to get the scalar outta the vector
+        return [NPV(r, C)]  # Return as a vector because NLsolve demands
+    end
+    
+    # Initial guess for IRR (as a vector)
+    r_guess = [0.1]  # This can be changed if necessary 
+
+    # NLsolve shoud be able to find the root hopefully
+    result = nlsolve(nlsolve_func, r_guess)
+    
+    # Extract the IRR from the result
+    irr = result.zero[1]  # The root is stored as a vector
+    return irr
+end
+
+# Let's test it with arbitrary flows: Initial investment -100, followed by inflows 30, 40, 50, 60
+C = [-100, 30, 40, 50, 60]
+#works :)
+# Calculate the internal rate of return (IRR)
+irr = internal_rate(C)
+println("Internal Rate of Return (IRR): ", irr)
+internal_rate([−5, 0, 0, 2.5, 5])
+
+internal_rate([−5, 0, 0, 2.5, 5])
+
+#yay i think it runnssss
