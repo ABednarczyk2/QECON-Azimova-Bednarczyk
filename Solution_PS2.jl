@@ -1,47 +1,39 @@
 # Problem 1
 
-function iterative_solver(f, x0; α=0.0, ε=1e-6, maxiter=1000)
-    # Initialize variables
-    x_n = x0
-    iterations = [x0]
-    residuals = []
+function fixed_point_solver(f, x0; α=1.0, max_iter=1000, ϵ=1e-6)
+    x = x0
+    xs = [x0]  
+    residuals = [abs(f(x) - x)]  #  residuals
     
-    # Iterate
-    for i in 1:maxiter
-        g_x = f(x_n) + x_n
-        x_next = (1 - α) * g_x + α * x_n
-        diff = abs(x_next - x_n)
+    for i in 1:max_iter
+        x_new = (1 - α) * x + α * f(x)  # dampening
+        xs = [xs; x_new]
+        residuals = [residuals; abs(f(x_new) - x_new)]
         
-        # Store residual and update current value
-        push!(residuals, diff)
-        push!(iterations, x_next)
-        
-        # Check for convergence
-        if diff / (1 + abs(x_next)) < ε
-            return 0, x_next, f(x_next), diff, iterations, residuals
+        if abs(x_new - x) < ϵ
+            # Solution found, return results :)
+            return (0, x_new, abs(x_new - f(x_new)), xs, residuals)
         end
-        
-        # Update x_n for the next iteration
-        x_n = x_next
+        x = x_new
     end
     
-    # Return NaN if no solution found
-    return 1, NaN, NaN, NaN, iterations, residuals
+    # If solution not found, return NaN :(
+    return (1, NaN, NaN, xs, residuals)
 end
 
-# Define the function f(x)
-f(x) = x^3 - x - 1
+# Testing our solver with f(x) = (x + 1)^(1/3)-x
 
-# Test the function
-flag, solution, f_value, diff, iterations, residuals = iterative_solver(f, 1.0; α=0.5)
+f(x) = (x + 1)^(1/3)-x
+x0 = 1.0  # Initial guess
+α = 0  # Dampening parameter which now is 0 (maximum possible)
 
-# Print the results
-println("Flag (0 if solution found, 1 otherwise): $flag")
+flag, solution, abs_diff, xs, residuals = fixed_point_solver(f, x0, α=α)
+
+println("Flag: $flag")
 println("Solution: $solution")
-println("f(solution): $f_value")
-println("Difference between iterations: $diff")
-println("All iterations: $iterations")
-println("All residuals: $residuals")
+println("Absolute difference: $abs_diff")
+println("Last iterates: ", xs[end-4:end])  # Here we have an error because I think with such extrenme dampening we can't really move from the initial guess...We'll check for other values of parameters alpha
+println("Last residuals: ", residuals[end-4:end])  # not ideal
 
 
 # Problem 2 
@@ -205,3 +197,98 @@ y = 1
 
 # Plot cost and input demand functions
 plot_cost_and_inputs(α, σ_vals, w1_vals, w2, y)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 2nd version Problem 1 (draft)
+
+function iterative_solver(f, x0; α=0.0, ε=1e-6, maxiter=1000)
+    # Initialize variables
+    x_n = x0
+    iterations = [x0]
+    residuals = []
+    
+    # Iterate
+    for i in 1:maxiter
+        g_x = f(x_n) + x_n
+        x_next = (1 - α) * g_x + α * x_n
+        diff = abs(x_next - x_n)
+        
+        # Store residual and update current value
+        push!(residuals, diff)
+        push!(iterations, x_next)
+        
+        # Check for convergence
+        if diff / (1 + abs(x_next)) < ε
+            return 0, x_next, f(x_next), diff, iterations, residuals
+        end
+        
+        # Update x_n for the next iteration
+        x_n = x_next
+    end
+    
+    # Return NaN if no solution found
+    return 1, NaN, NaN, NaN, iterations, residuals
+end
+
+# Define the function f(x)
+f(x) = x^3 - x - 1
+
+# Test the function
+flag, solution, f_value, diff, iterations, residuals = iterative_solver(f, 1.0; α=0.5)
+
+# Print the results
+println("Flag (0 if solution found, 1 otherwise): $flag")
+println("Solution: $solution")
+println("f(solution): $f_value")
+println("Difference between iterations: $diff")
+println("All iterations: $iterations")
+println("All residuals: $residuals")
+
