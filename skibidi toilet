@@ -1,0 +1,74 @@
+using Plots
+
+# Parameters
+β = 0.9                 # Discount factor
+c = 2.0                 # Flow utility when unemployed
+p_vals = 0.0:0.1:1.0    # Range of job loss probabilities
+wages = collect(1.0:0.1:10.0)  # Wage distribution
+π = fill(1.0 / length(wages), length(wages))  # Uniform distribution over wages
+
+# Value functions
+function solve_bellman(p)
+    V_E = zeros(length(wages))  # Value of being employed
+    V_U = zeros(length(wages))  # Value of being unemployed
+
+    # Iterate to solve for V_E and V_U
+    tol = 1e-6
+    diff = 1.0
+    while diff > tol
+        V_E_old = copy(V_E)
+        V_U_old = copy(V_U)
+
+        # Update V_E
+        for i in 1:length(wages)
+            w = wages[i]
+            V_E[i] = w + β * ((1 - p) * V_E_old[i] + p * sum(V_U_old .* π))
+        end
+
+        # Update V_U
+        for i in 1:length(wages)
+            w = wages[i]
+            V_U[i] = max(V_E[i], c + β * sum(V_U_old .* π))
+        end
+
+        diff = maximum(abs.(V_E .- V_E_old)) + maximum(abs.(V_U .- V_U_old))
+    end
+
+    return V_E, V_U
+end
+
+# Calculate reservation wage and probability q
+function calculate_reservation_wage(V_E, V_U)
+    for i in 1:length(wages)
+        if V_E[i] >= V_U[i]
+            return wages[i]
+        end
+    end
+    return nothing  # No reservation wage found
+end
+
+function calculate_q(w_star)
+    return sum(w >= w_star for w in wages) / length(wages)
+end
+
+# Main analysis
+reservation_wages = []
+acceptance_probs = []
+unemployment_durations = []
+
+for p in p_vals
+    V_E, V_U = solve_bellman(p)
+    w_star = calculate_reservation_wage(V_E, V_U)
+    q = calculate_q(w_star)
+    reservation_wages = push!(reservation_wages, w_star)
+    acceptance_probs = push!(acceptance_probs, q)
+    push!(unemployment_durations, 1 / q)
+end
+
+# Plot results
+plot(p_vals, reservation_wages, xlabel="p (Job Loss Probability)", ylabel="Reservation Wage (w*)",
+     title="Reservation Wage vs. Job Loss Probability", label="w*")
+plot!(p_vals, acceptance_probs, xlabel="p (Job Loss Probability)", ylabel="Acceptance Probability (q)",
+      title="Acceptance Probability vs. Job Loss Probability", label="q", legend=:bottomright)
+plot!(p_vals, unemployment_durations, xlabel="p (Job Loss Probability)", ylabel="Expected Duration",
+      title="Expected Unemployment Duration vs. Job Loss Probability", label="E[Duration]", legend=:topright)
