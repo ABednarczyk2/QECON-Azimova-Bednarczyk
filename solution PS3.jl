@@ -1,4 +1,4 @@
-
+# TASK 1, Basil
 
 function solve_basil(
     N::Int,       
@@ -156,26 +156,69 @@ end
 main()
 
 
+#Task 2 :(
+    using Plots
 
+    beta = 0.95
+    c = 2.0
+    wgrid = 5.0:1.0:20.0
+    π = fill(1.0/length(wgrid), length(wgrid))
+    pvals = 0:0.01:1.0
+    wstar_vals = similar(pvals)
+    q_vals = similar(pvals)
+    dur_vals = similar(pvals)
+    
+    function solve_model(p, wgrid, π, c, β)
+        barVU = c/(1-β)
+        diff = 1.0
+        tol = 1e-8
+        while diff>tol
+            VE = (wgrid .+ β*p*barVU)./(1.0 - β*(1.0-p))
+            VU = max.(VE, barVU)
+            new_barVU = c + β*dot(VU, π)
+            diff = abs(new_barVU - barVU)
+            barVU = new_barVU
+        end
+        VE = (wgrid .+ β*p*barVU)./(1.0 - β*(1.0-p))
+        wstar_index = findfirst(i->VE[i]>=barVU, eachindex(wgrid))
+        if wstar_index == nothing
+            wstar = maximum(wgrid)
+        else
+            wstar = wgrid[wstar_index]
+        end
+        q = sum(π[i] for i in eachindex(wgrid) if wgrid[i]>=wstar)
+        return wstar, q, 1/q
+    end
+    
+    for (i,pp) in enumerate(pvals)
+        wstar_vals[i], q_vals[i], dur_vals[i] = solve_model(pp, wgrid, π, c, beta)
+    end
+    
+    plot(pvals, wstar_vals, xlabel="p", ylabel="w*", legend=false)
+    plot(pvals, q_vals, xlabel="p", ylabel="q", legend=false)
+    plot(pvals, dur_vals, xlabel="p", ylabel="Expected Unemployment Duration", legend=false)
+
+
+# TASK 3, NGM
 
 using Plots
 
-function kstar(β,α,δ)
+function f1_kstar(β,α,δ) #function f had to be renamed f1 for all 4 tasks to run back to back
     return ((α*β)/(1-β*(1-δ)))^(1/(1-α))
 end
 
-function f(k,α)
+function f1_f(k,α)
     return k^α
 end
 
-function simulate(β,α,δ,γ,k₀,T)
+function f1_simulate(β,α,δ,γ,k₀,T)
     K=zeros(T+1)
     C=zeros(T+1)
     I=zeros(T+1)
     Y=zeros(T+1)
     K[1]=k₀
     for t in 1:T
-        Y[t]=f(K[t],α)
+        Y[t]=f1_f(K[t],α)
         if γ==1
             C[t]=Y[t]+(1-δ)*K[t] - (β*α*Y[t])
         else
@@ -184,7 +227,7 @@ function simulate(β,α,δ,γ,k₀,T)
         I[t]=Y[t]+(1-δ)*K[t]-C[t]
         K[t+1]=Y[t]+(1-δ)*K[t]-C[t]
     end
-    Y[T+1]=f(K[T+1],α)
+    Y[T+1]=f1_f(K[T+1],α)
     if γ==1
         C[T+1]=Y[T+1]+(1-δ)*K[T+1] - (β*α*Y[T+1])
     else
@@ -194,11 +237,11 @@ function simulate(β,α,δ,γ,k₀,T)
     return K,C,I,Y
 end
 
-function convergence_table(β,α,δ,γvals)
-    kst=kstar(β,α,δ)
+function f1_convergence_table(β,α,δ,γvals)
+    kst=f1_kstar(β,α,δ)
     tbl=[]
     for γ in γvals
-        K,C,I,Y=simulate(β,α,δ,γ,0.5*kst,200)
+        K,C,I,Y=f1_simulate(β,α,δ,γ,0.5*kst,200)
         m=0
         for t in 1:length(K)
             if kst-K[t]<0.5*(kst-0.5*kst)
@@ -211,10 +254,10 @@ function convergence_table(β,α,δ,γvals)
     return tbl
 end
 
-function plot_panels(β,α,δ,γvals)
+function f1_plot_panels(β,α,δ,γvals)
     p=plot(layout=(2,2))
     for γ in γvals
-        K,C,I,Y=simulate(β,α,δ,γ,0.5*kstar(β,α,δ),50)
+        K,C,I,Y=f1_simulate(β,α,δ,γ,0.5*f1_kstar(β,α,δ),50)
         plot!(p[1],K,label="γ=$γ")
         plot!(p[2],Y,label="γ=$γ")
         plot!(p[3],I./Y,label="γ=$γ")
@@ -227,8 +270,10 @@ end
 α=0.3
 δ=0.05
 γvals=[0.5,1.0,2.0]
-display(convergence_table(β,α,δ,γvals))
-plot_panels(β,α,δ,γvals)
+display(f1_convergence_table(β,α,δ,γvals))
+f1_plot_panels(β,α,δ,γvals)
+
+
 
 
 #Task 4, Markov 
@@ -290,45 +335,5 @@ T,p,m,e=markov_analysis(P)
 
 
 
-#Task 2 :(
-    using Plots
 
-    beta = 0.95
-    c = 2.0
-    wgrid = 5.0:1.0:20.0
-    π = fill(1.0/length(wgrid), length(wgrid))
-    pvals = 0:0.01:1.0
-    wstar_vals = similar(pvals)
-    q_vals = similar(pvals)
-    dur_vals = similar(pvals)
-    
-    function solve_model(p, wgrid, π, c, β)
-        barVU = c/(1-β)
-        diff = 1.0
-        tol = 1e-8
-        while diff>tol
-            VE = (wgrid .+ β*p*barVU)./(1.0 - β*(1.0-p))
-            VU = max.(VE, barVU)
-            new_barVU = c + β*dot(VU, π)
-            diff = abs(new_barVU - barVU)
-            barVU = new_barVU
-        end
-        VE = (wgrid .+ β*p*barVU)./(1.0 - β*(1.0-p))
-        wstar_index = findfirst(i->VE[i]>=barVU, eachindex(wgrid))
-        if wstar_index == nothing
-            wstar = maximum(wgrid)
-        else
-            wstar = wgrid[wstar_index]
-        end
-        q = sum(π[i] for i in eachindex(wgrid) if wgrid[i]>=wstar)
-        return wstar, q, 1/q
-    end
-    
-    for (i,pp) in enumerate(pvals)
-        wstar_vals[i], q_vals[i], dur_vals[i] = solve_model(pp, wgrid, π, c, beta)
-    end
-    
-    plot(pvals, wstar_vals, xlabel="p", ylabel="w*", legend=false)
-    plot(pvals, q_vals, xlabel="p", ylabel="q", legend=false)
-    plot(pvals, dur_vals, xlabel="p", ylabel="Expected Unemployment Duration", legend=false)
     
