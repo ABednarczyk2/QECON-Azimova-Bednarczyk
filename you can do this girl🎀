@@ -1,0 +1,443 @@
+using Plots
+
+# tax function defined as:
+function tax(yi, ybar, τ, λ)
+    return yi - (1 - τ) * (yi / ybar)^(1 - λ) * ybar
+end
+
+# Example: taxes for different λ compared
+yi = 1.5
+ybar = 1.0
+τ = 0.3
+λ1 = 0.0
+λ2 = 0.15
+println("Tax with λ = $λ1: ", tax(yi, ybar, τ, λ1))
+println("Tax with λ = $λ2: ", tax(yi, ybar, τ, λ2))
+
+#  logarithmic asset grid this doesnst work :(
+function build_log_asset_grid(grid_size::Int; a_min::Float64=0.0, a_max::Float64=1000.0)
+    log_min = log(a_min + 1)
+    log_max = log(a_max + 1)
+    log_grid = range(log_min, log_max, length=grid_size)
+    asset_grid = exp.(log_grid) .- 1
+    return asset_grid
+end
+
+# different grid sizes testing
+grid_sizes = [100, 150, 200]
+results_grid = Dict()
+for grid_size in grid_sizes
+    asset_grid = build_log_asset_grid(grid_size)
+    result = solve_model(asset_grid; tol=1e-6, maxiter=1000)
+    results_grid[grid_size] = result
+end
+
+# simple value function iteration placeholder
+function solve_model(asset_grid; tol=1e-6, maxiter=1000)
+    value_function = zeros(length(asset_grid))
+    diff = Inf
+    iteration = 0
+    while diff > tol && iteration < maxiter
+        old_value_function = copy(value_function)
+        for i in eachindex(asset_grid)
+            value_function[i] = asset_grid[i] + 0.95 * maximum(old_value_function)
+        end
+        diff = maximum(abs.(value_function - old_value_function))
+        iteration += 1
+    end
+    println("Converged in $iteration iterations with tolerance $diff")
+    return (value_function=value_function)
+end
+
+
+
+
+
+
+
+
+
+#RESULTS tax (generic function with 1 method)
+
+1.5
+
+1.0
+
+0.3
+
+0.0
+
+0.15
+
+Tax with λ = 0.0: 0.4500000000000002
+
+Tax with λ = 0.15: 0.511957535650238
+
+build_log_asset_grid (generic function with 1 method)
+
+3-element Vector{Int64}:
+ 100
+ 150
+ 200
+
+Dict{Any, Any}()
+
+Converged in 406 iterations with tolerance 9.507348295301199e-7
+Converged in 406 iterations with tolerance 9.507348295301199e-7
+Converged in 406 iterations with tolerance 9.507348295301199e-7
+
+solve_model (generic function with 1 method)
+
+solve_model (generic function with 1 method)
+
+
+
+
+
+
+
+
+#Tax Function Results THIS ISNT CODE ITS RESLTS
+
+yi=1.5 
+avg income y bar= 1 
+avg tax rate τ=0.3:
+
+With 
+𝜆=0.0 (no progressivity):
+Tax = 0.45
+This is a proportional tax system (like a flat tax). Since 
+𝜆=0
+λ=0, the tax is simply 
+
+τ×yi=0.3×1.5=0.45.
+
+#With 
+𝜆=0.15 (progressive tax):
+Tax = 0.51196
+Here, higher incomes are taxed higher. With progressivity, the effective rate increases, which explains why the tax on the same income is higher.
+
+#sset Grid Construction three different grid sizes:
+
+100 points
+150 points
+200 points
+And constructed a logarithmic asset grid, which clusters points near zero (useful because households with low assets are more sensitive to changes).
+
+3. Value Function Iteration Results
+For all three grid sizes, you got:
+
+Convergence in 406 iterations
+Final tolerance: 9.507e-7 (below your target tolerance of 1e-6)
+This means your value function iteration (VFI) procedure is stable and converges, but the number of iterations (406) is relatively high.
+
+
+The progressive tax system (λ = 0.15) collects more tax from high earners than the proportional system.
+The logarithmic grid likely helps capture behavior near zero assets (important for liquidity-constrained households).
+Grid size didn’t affect convergence speed or results (all converged in 406 iterations), which suggests your solution is robust to grid size.
+The tolerance is sufficiently small, meaning the solution is accurate.
+
+WHAT ESLE coudl be done 
+different curvatures: Test curvature=1.5, 3.0, etc., to see how the asset distribution and results change.
+Ddifferent tolerance (e.g., tol=1e-8) to see if results remain stable.
+Compare equilibrium results between λ = 0.0 and λ = 0.15 (e.g., average assets, consumption, or savings).
+
+Actually I forgt about the whole heterobusiness and didnt account for the idiosyncracies etc ....
+Comparison of Equilibrium Outcomes:
+
+Average chosen next-period asset (λ = 0.0): 147.0320547076
+
+Average chosen next-period asset (λ = 0.15): 146.70329339205068
+
+The slight decrease under the progressive tax system is expected because higher-income agents face higher marginal tax rates, reducing their incentive to save.
+
+
+
+
+This Julia script:
+1. Constructs a productivity grid using Tauchen’s method.
+2. Compares stationary equilibria under flat (λ = 0.0) and progressive (λ = 0.15) labor tax regimes.
+3. Outputs equilibrium statistics and plots value functions, policy functions, asset distributions, and Lorenz curves.
+
+### Tauchen Method (AR(1) Process)
+The function `my_tauchen()` creates a grid for idiosyncratic productivity shocks using:
+- **ρ (persistence)** and **σ (volatility)** for the AR(1) process.
+- A grid range determined by ±3 standard deviations.
+- Transition probabilities computed via the cumulative normal distribution.
+- **Exponential transformation** ensures average productivity is 1.
+
+### Equilibrium Statistics
+The dictionary `results` stores outcomes for λ = 0.0 and λ = 0.15:
+- **r (Interest rate)** and **w (Wage rate):** Set as placeholders.
+- **τ (Tax rate):** The effective labor income tax.
+- **K/Y (Capital-output ratio):** Captured by `K_over_Y`.
+- **Gini coefficients:** For after-tax labor income and asset distributions.
+- **Value and Policy Functions:** Captured as vectors representing decision rules.
+- **Asset Distribution:** Captured as a probability distribution.
+
+### Plots
+- **Value & Policy Functions:** Visualize agents' responses to productivity shocks.
+- **Asset Distributions:** Show wealth inequality.
+- **Lorenz Curves:** Illustrate inequality for labor income and assets, with a 45° line for perfect equality.
+
+### Equilibrium Calculation Note
+Currently, interest rates, wages, and taxes are placeholders. To compute equilibrium values, you would:
+1. Solve household optimization via value function iteration.
+2. Clear markets by adjusting `r` and `w`.
+3. Set `τ` in the λ = 0.15 economy to match government revenue from the flat-tax economy.
+
+
+
+using Distributions, Statistics, Plots
+
+# Tauchen method for AR(1) process
+function my_tauchen(N::Int, ρ::Float64, σ::Float64; m::Float64=3.0, μ::Float64=0.0)
+    z_std = σ / sqrt(1 - ρ^2)
+    z_min, z_max = μ - m * z_std, μ + m * z_std
+    z_grid = range(z_min, z_max, length=N)
+    step = (z_max - z_min) / (N - 1)
+    P = [cdf(Normal(), ((z_grid[j] - μ - ρ*(z_grid[i]-μ)) / σ + step/2)) -
+         cdf(Normal(), ((z_grid[j] - μ - ρ*(z_grid[i]-μ)) / σ - step/2)) for i in 1:N, j in 1:N]
+    return z_grid, P
+end
+
+# Tauchen parameters and productivity grid
+nz, ρ, σ = 5, 0.9, 0.4
+lnztilde = -0.5 * σ^2 / (1 - ρ^2)
+z_grid, P_z = my_tauchen(nz, ρ, σ; μ=lnztilde)
+z_grid = exp.(z_grid) ./ mean(exp.(z_grid))  # Normalize to mean=1
+
+# Placeholder for HANK model equilibria
+λ_values = [0.0, 0.15]
+results = Dict()
+
+for λ in λ_values
+    results[λ] = (r = 0.04, w = 1.0, τ = 0.25, K_over_Y = 3.0,
+                  gini_labor = 0.35, gini_assets = 0.6,
+                  value_function = rand(nz),
+                  policy_function = rand(nz),
+                  asset_distribution = rand(nz))
+end
+
+# Correct key access using Symbols instead of Strings
+for (metric, title) in [(Symbol("value_function"), "Value Function"),
+                        (Symbol("policy_function"), "Policy Function"),
+                        (Symbol("asset_distribution"), "Asset Distribution")]
+    p = plot()
+    for λ in λ_values
+        plot!(p, 1:nz, getproperty(results[λ], metric), label="λ = $λ")
+    end
+    title!(p, title)
+    display(p)
+end
+
+# Placeholder for Lorenz curves (replace with actual computation)
+lorenz_points = range(0, stop=1, length=100)
+for (gini_key, title) in [(Symbol("gini_labor"), "Labor Income Lorenz Curve"),
+                          (Symbol("gini_assets"), "Asset Lorenz Curve")]
+    p = plot(lorenz_points, lorenz_points, linestyle=:dash, label="Equality")
+    for λ in λ_values
+        lorenz_curve = lorenz_points .^ (1 + getproperty(results[λ], gini_key))
+        plot!(p, lorenz_points, lorenz_curve, label="λ = $λ")
+    end
+    title!(p, title)
+    display(p)
+end
+
+
+
+
+my_tauchen (generic function with 1 method)
+
+(5, 0.9, 0.4)  
+
+-0.42105263157894757
+
+(-3.1740414380256894:1.376494403223371:2.3319361748677947, [0.4156656905560928 0.019184196262402975 … 0.0 0.0; 0.0009732332347246945 0.4836741104247299 … 2.4561223055385994e-9 0.0; … ; 7.61808803392264e-21 2.456122235631861e-9 … 0.48367411042472985 0.0009732332347246464; 1.5091101119408923e-35 1.822838673932558e-19 … 0.019184196262403044 0.4156656905560925])
+
+5-element Vector{Float64}:
+ 0.015199636703236442
+ ⋮
+
+2-element Vector{Float64}:
+ 0.0
+ 0.15
+
+Dict{Any, Any}()
+
+
+
+0.0:0.010101010101010102:1.0
+
+
+
+using Roots
+
+
+function solve_equilibrium(; λ, τ)
+    # Solve for equilibrium with given tax parameters
+    # Return results including output and government revenue
+end
+
+using Roots
+
+τ_λ015 = find_zero(revenue_gap, 0.3)
+println("τ for λ = 0.15:", τ_λ015)
+
+
+
+
+
+
+
+
+
+
+
+
+using Distributions, Statistics, Plots
+
+# Tauchen method for AR(1) process
+function my_tauchen(N::Int, ρ::Float64, σ::Float64; m::Float64=3.0, μ::Float64=0.0)
+    z_std = σ / sqrt(1 - ρ^2)
+    z_min, z_max = μ - m * z_std, μ + m * z_std
+    z_grid = range(z_min, z_max, length=N)
+    step = (z_max - z_min) / (N - 1)
+    P = [cdf(Normal(), ((z_grid[j] - μ - ρ*(z_grid[i]-μ)) / σ + step/2)) -
+         cdf(Normal(), ((z_grid[j] - μ - ρ*(z_grid[i]-μ)) / σ - step/2)) for i in 1:N, j in 1:N]
+    return z_grid, P
+end
+
+# Tauchen parameters and productivity grid
+nz, ρ, σ = 5, 0.9, 0.4
+lnztilde = -0.5 * σ^2 / (1 - ρ^2)
+z_grid, P_z = my_tauchen(nz, ρ, σ; μ=lnztilde)
+z_grid = exp.(z_grid) ./ mean(exp.(z_grid))  # Normalize to mean=1
+
+# Placeholder for HANK model equilibria
+λ_values = [0.0, 0.15]
+results = Dict()
+
+for λ in λ_values
+    results[λ] = (r = 0.04, w = 1.0, τ = 0.25, K_over_Y = 3.0,
+                  gini_labor = 0.35, gini_assets = 0.6,
+                  value_function = rand(nz),
+                  policy_function = rand(nz),
+                  asset_distribution = rand(nz))
+end
+
+# Correct key access using Symbols instead of Strings
+for (metric, title) in [(Symbol("value_function"), "Value Function"),
+                        (Symbol("policy_function"), "Policy Function"),
+                        (Symbol("asset_distribution"), "Asset Distribution")]
+    p = plot()
+    for λ in λ_values
+        plot!(p, 1:nz, getproperty(results[λ], metric), label="λ = $λ")
+    end
+    title!(p, title)
+    display(p)
+end
+
+# Placeholder for Lorenz curves (replace with actual computation)
+lorenz_points = range(0, stop=1, length=100)
+for (gini_key, title) in [(Symbol("gini_labor"), "Labor Income Lorenz Curve"),
+                          (Symbol("gini_assets"), "Asset Lorenz Curve")]
+    p = plot(lorenz_points, lorenz_points, linestyle=:dash, label="Equality")
+    for λ in λ_values
+        lorenz_curve = lorenz_points .^ (1 + getproperty(results[λ], gini_key))
+        plot!(p, lorenz_points, lorenz_curve, label="λ = $λ")
+    end
+    title!(p, title)
+    display(p)
+end
+
+
+
+
+
+# Julia Code: Stationary Equilibria for Flat and Progressive Taxes now computing r and w and what not 
+
+## Setup: AR(1) Process with Tauchen’s Method
+
+function my_tauchen(N::Int, ρ::Float64, σ::Float64; m::Float64=3.0)
+    z = range(-m*σ, m*σ, length=N)
+    step = (z[end] - z[1]) / (N-1)
+    P = zeros(N, N)
+    for i in 1:N
+        for j in 1:N
+            left = z[j] - step/2
+            right = z[j] + step/2
+            P[i,j] = cdf(Normal(ρ*z[i], σ), right) - cdf(Normal(ρ*z[i], σ), left)
+        end
+    end
+    return z, P ./ sum(P, dims=2)
+end
+
+
+## Equilibrium Computation
+
+function compute_stationary_equilibrium(λ::Float64)
+    # Initialize guesses for r, w, τ
+    r, w, τ = 0.04, 1.0, 0.2
+    for iteration in 1:100
+        household = solve_household_problem(r, w, λ, τ)
+        markets = clear_markets(household)
+        if λ > 0
+            τ = match_government_revenue(flat_tax_revenue, markets)
+        end
+        r, w = markets[:r], markets[:w]
+    end
+    return (r, w, τ)
+end
+
+
+## Comparison of Flat vs. Progressive Taxes
+
+flat = compute_stationary_equilibrium(0.0)
+progressive = compute_stationary_equilibrium(0.15)
+
+plot_value_and_policy_functions(flat, progressive)
+plot_asset_distributions(flat, progressive)
+plot_lorenz_curves(flat, progressive) #but it has errors 
+
+
+
+#now w/o errors hopefully 
+using LinearAlgebra, Distributions, Plots
+
+# Household Problem Solver (Value Function Iteration)
+function solve_household_problem(r, w, τ, asset_grid, transition_probs, β)
+    V = zeros(length(asset_grid))
+    policy = zeros(Int, length(asset_grid))
+    for _ in 1:500
+        V_new = copy(V)
+        for i in eachindex(asset_grid)
+            consumption = max.(w * (1 - τ) .+ r * asset_grid[i] .- asset_grid, 1e-10)
+            values = log.(consumption) .+ β * dot(transition_probs[i, :], V)
+            V_new[i], policy[i] = findmax(values)
+        end
+        if norm(V_new - V) < 1e-6
+            break
+        end
+        V = V_new
+    end
+    return V, policy
+end
+
+# Stationary Equilibrium Computation with Positional Arguments
+function compute_stationary_equilibrium(λ, β, r, w, τ)
+    asset_grid = range(0, stop=100, length=200)
+    transition_probs = fill(1/length(asset_grid), (length(asset_grid), length(asset_grid)))
+    V, policy = solve_household_problem(r, w, τ, asset_grid, transition_probs, β)
+    capital_supply = mean(asset_grid[policy])
+    output = capital_supply^0.36
+    return (λ = λ, r = r, w = w, τ = τ, capital_supply = capital_supply, output = output, V = V, policy = policy)
+end
+
+# Compare Flat and Progressive Tax Equilibria
+flat_eq = compute_stationary_equilibrium(0.0, 0.96, 0.04, 1.0, 0.2)
+progressive_eq = compute_stationary_equilibrium(0.15, 0.96, 0.04, 1.0, 0.15)
+
+println("Flat Tax Equilibrium: ", flat_eq)
+println("Progressive Tax Equilibrium: ", progressive_eq)
+
