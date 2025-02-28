@@ -1,0 +1,109 @@
+using Plots, Distributions, Statistics, Base.Threads
+
+#because the code is too slow to run dividing for indiv. tasks LORENZ CURVES
+
+using LinearAlgebra, Statistics, Parameters, Interpolations, Plots, Distributions
+
+
+const gamma1, beta1, rho1, sigma1, phi1 = 2.0, 0.96, 0.9, 0.4, 0.0
+const alpha1, delta1, A1, tau1 = 0.36, 0.08, 1.0, 0.2
+const r1, w1 = 0.04, 1.0
+
+# Function to compute LC
+function compute_lorenz(assets::Vector{Float64})
+    sort!(assets)  # Sort assets in-place (faster)
+    total_wealth = sum(assets)
+    cumulative_wealth = cumsum(assets) ./ total_wealth
+    cumulative_pop = range(0, 1, length=length(assets))
+    return cumulative_pop, cumulative_wealth
+end
+
+# LC for λ = 0 and λ = 0.15
+function plot_lorenz_curves()
+    # Simulate asset distributions
+    assets_lambda_0 = rand(Weibull(2.0, 10.0), 1000)    
+    assets_lambda_015 = rand(Weibull(1.8, 8.0), 1000)   
+
+    pop0, wealth0 = compute_lorenz(assets_lambda_0)
+    pop015, wealth015 = compute_lorenz(assets_lambda_015)
+
+    plot(pop0, wealth0, label="λ = 0 (Flat Tax)", linewidth=2)
+    plot!(pop015, wealth015, label="λ = 0.15 (Progressive Tax)", linewidth=2)
+    plot!(pop0, pop0, linestyle=:dash, label="Perfect Equality", linewidth=2)
+    
+    title!("Lorenz Curve Comparison")
+    xlabel!("Cumulative Population Share")
+    ylabel!("Cumulative Wealth Share")
+    legend(:bottomright)
+end
+
+
+function solve_model()
+    println("Solving the model (optimized)...")
+end
+solve_model()
+plot_lorenz_curves()
+# Parameters
+const gamma1 = 2.0       
+const beta1 = 0.96       
+const rho1 = 0.9         
+const sigma1 = 0.4      
+const phi1 = 0.0         
+const alpha1 = 0.36      
+const delta1 = 0.08     
+const A1 = 1.0          
+const tau1 = 0.2        
+const lambda1 = 0.15    
+const r1 = 0.04         
+const w1 = 1.0          
+
+# grid
+a_min1 = 0.0
+a_max1 = 50.0
+num_a1 = 100
+a_grid1 = range(a_min1, a_max1, length=num_a1) |> collect
+
+# productivity process
+z_grid1 = [-0.5, -0.25, 0.0, 0.25, 0.5]
+Pi1 = [
+    0.7 0.2 0.1 0.0 0.0;
+    0.2 0.5 0.2 0.1 0.0;
+    0.1 0.2 0.4 0.2 0.1;
+    0.0 0.1 0.2 0.5 0.2;
+    0.0 0.0 0.1 0.2 0.7
+]
+
+# Production function
+production(K, L) = A1 * K^alpha1 * L^(1 - alpha1)
+
+# Utility function
+utility(c) = (c^(1 - gamma1) - 1) / (1 - gamma1)
+
+
+function solve_model()
+    println("Solving the model...")
+end
+
+solve_model()
+
+# Lorenz Curve Function
+function lorenz_curve(assets)
+    sorted_assets = sort(assets)
+    cumulative_wealth = cumsum(sorted_assets) / sum(sorted_assets)
+    population_share = range(0, 1, length=length(assets))
+    return population_share, cumulative_wealth
+end
+
+
+assets_lambda_0 = rand(1000) .^ 2 * 50  # Example asset distribution (more concentrated at lower values)
+assets_lambda_015 = rand(1000) .^ 1.5 * 50  # Example with more redistribution
+
+pop_share_0, wealth_share_0 = lorenz_curve(assets_lambda_0)
+pop_share_015, wealth_share_015 = lorenz_curve(assets_lambda_015)
+
+# Plot LCs
+plot(pop_share_0, wealth_share_0, label="λ = 0", linewidth=2, xlabel="Cumulative Population", ylabel="Cumulative Wealth", title="Lorenz Curve Comparison")
+plot!(pop_share_015, wealth_share_015, label="λ = 0.15", linewidth=2, linestyle=:dash)
+plot!(0:0.01:1, 0:0.01:1, label="Perfect Equality", linestyle=:dot, color=:black)
+
+savefig("lorenz_curve.png")
